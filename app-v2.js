@@ -1,7 +1,9 @@
 (() => {
   const cfg = window.ESTATE_PULSE_CONFIG;
   const nf = new Intl.NumberFormat("ro-RO");
-  const money = new Intl.NumberFormat("ro-RO", { style: "currency", currency: "RON", maximumFractionDigits: 0 });
+  const EUR_RON_RATE = 5.2553; // aproximare folosită pentru agregarea "Toți dezvoltatorii"
+  const moneyRon = new Intl.NumberFormat("ro-RO", { style: "currency", currency: "RON", maximumFractionDigits: 0 });
+  const moneyEur = new Intl.NumberFormat("ro-RO", { style: "currency", currency: "EUR", maximumFractionDigits: 0 });
   const monthFmt = new Intl.DateTimeFormat("ro-RO", { month: "short", year: "2-digit" });
 
   const state = {
@@ -36,6 +38,36 @@
   function pct(n, d) {
     if (n === null || d === null || !d) return null;
     return (Number(n) / Number(d)) * 100;
+  }
+
+  function rowCurrency(row) {
+    return (row.currency || "RON").toUpperCase();
+  }
+
+  function spendInRon(row) {
+    if (row.spend === null || row.spend === undefined || row.spend === "") return null;
+    const value = Number(row.spend);
+    if (!Number.isFinite(value)) return null;
+    return rowCurrency(row) === "EUR" ? value * EUR_RON_RATE : value;
+  }
+
+  function moneyForCurrency(value, currency = "RON") {
+    if (value === null || value === undefined) return "—";
+    return currency === "EUR" ? moneyEur.format(value) : moneyRon.format(value);
+  }
+
+  function cplFromBudgetMonths(rows, convertToRon = false) {
+    const budgetRows = rows.filter(r => {
+      if (r.spend === null || r.spend === undefined || r.spend === "") return false;
+      const value = Number(r.spend);
+      return Number.isFinite(value) && value > 0;
+    });
+    const spend = budgetRows.length ? budgetRows.reduce((acc, r) => {
+      const value = convertToRon ? spendInRon(r) : Number(r.spend);
+      return acc + (value || 0);
+    }, 0) : null;
+    const leads = sum(budgetRows, "total_leads");
+    return { spend, leads, cpl: spend !== null && leads ? spend / leads : null };
   }
 
   function formatMaybe(value) {
@@ -110,13 +142,18 @@
     const leads = sum(rows, "total_leads");
     const meetings = sum(rows, "meetings");
     const transactions = sum(rows, "transactions");
-    const spend = sum(rows, "spend");
+    const allDevelopers = state.developerId === "all";
+    const currency = allDevelopers ? "RON" : (rows.find(r => r.currency)?.currency || "RON").toUpperCase();
+    const spend = allDevelopers
+      ? (rows.some(r => r.spend !== null && r.spend !== undefined && r.spend !== "") ? rows.reduce((acc, r) => acc + (spendInRon(r) || 0), 0) : null)
+      : sum(rows, "spend");
+    const cplStats = cplFromBudgetMonths(rows, allDevelopers);
 
     el("kpiLeads").textContent = formatMaybe(leads);
     el("kpiMeetings").textContent = formatMaybe(meetings);
     el("kpiTransactions").textContent = formatMaybe(transactions);
-    el("kpiSpend").textContent = spend === null ? "—" : money.format(spend);
-    el("kpiCpl").textContent = spend !== null && leads ? `CPL: ${money.format(spend / leads)}` : "Date media neimportate încă";
+    el("kpiSpend").textContent = spend === null ? "—" : moneyForCurrency(spend, currency);
+    el("kpiCpl").textContent = cplStats.cpl !== null ? `CPL: ${moneyForCurrency(cplStats.cpl, currency)}` : "Date media neimportate încă";
 
     el("funnelLeads").textContent = formatMaybe(leads);
     el("funnelMeetings").textContent = formatMaybe(meetings);
@@ -236,7 +273,8 @@
       const meetings = sum(rows, "meetings");
       const transactions = sum(rows, "transactions");
       const spend = sum(rows, "spend");
-      const cpl = spend !== null && leads ? spend / leads : null;
+      const currency = (rows.find(r => r.currency)?.currency || "RON").toUpperCase();
+      const cpl = cplFromBudgetMonths(rows, false).cpl;
 
       const tr = document.createElement("tr");
       tr.className = "developer-row";
@@ -245,8 +283,8 @@
         <td>${formatMaybe(leads)}</td>
         <td>${formatMaybe(meetings)}</td>
         <td>${formatMaybe(transactions)}</td>
-        <td class="${spend === null ? "data-na" : ""}">${spend === null ? "—" : money.format(spend)}</td>
-        <td class="${cpl === null ? "data-na" : ""}">${cpl === null ? "—" : money.format(cpl)}</td>
+        <td class="${spend === null ? "data-na" : ""}">${spend === null ? "—" : moneyForCurrency(spend, currency)}</td>
+        <td class="${cpl === null ? "data-na" : ""}">${cpl === null ? "—" : moneyForCurrency(cpl, currency)}</td>
       `;
       tr.addEventListener("click", () => {
         state.developerId = dev.id;
@@ -293,7 +331,7 @@
     try {
       const [developers, metrics] = await Promise.all([
         api("developers?select=id,name,slug,is_active&is_active=eq.true&order=name.asc"),
-        api("monthly_metrics?select=developer_id,month,meetings,transactions,total_leads,visits,spend&order=month.asc")
+        api("monthly_metrics?select=developer_id,month,meetings,transactions,total_leads,visits,spend,currency&order=month.asc")
       ]);
 
       state.developers = developers;
