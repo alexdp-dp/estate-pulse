@@ -71,3 +71,7 @@ The dashboard is dynamic:
 - `app.js` — filters, aggregation, chart, live Supabase reads
 - `config.js` — public frontend Supabase configuration
 - `SECURITY_SETUP.sql` — one-time RLS setup
+
+
+## v2 cache-bust note
+This package uses `config-v2.js` and `app-v2.js` so an older GitHub Pages/browser cache cannot keep the previous Supabase key logic.
