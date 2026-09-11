@@ -190,33 +190,47 @@
     if (state.chart) state.chart.destroy();
 
     state.chart = new Chart(ctx, {
-      type: "line",
+      type: "bar",
       data: {
         labels: grouped.map(x => monthLabel(x.month)),
         datasets: [
           {
+            type: "line",
             label: "Leaduri",
             data: grouped.map(x => x.hasLeads ? x.total_leads : null),
+            yAxisID: "yLeads",
             borderWidth: 2.5,
             tension: .32,
             pointRadius: 2.5,
-            pointHoverRadius: 5
+            pointHoverRadius: 5,
+            fill: false,
+            order: 0
           },
           {
+            type: "bar",
             label: "Vizite / întâlniri",
             data: grouped.map(x => x.hasMeetings ? x.meetings : null),
-            borderWidth: 2,
-            tension: .32,
-            pointRadius: 2.5,
-            pointHoverRadius: 5
+            yAxisID: "yActions",
+            backgroundColor: "rgba(255,255,255,.24)",
+            borderColor: "rgba(255,255,255,.46)",
+            borderWidth: 1,
+            borderRadius: 4,
+            barPercentage: .72,
+            categoryPercentage: .74,
+            order: 1
           },
           {
+            type: "bar",
             label: "Tranzacții",
             data: grouped.map(x => x.hasTransactions ? x.transactions : null),
-            borderWidth: 2,
-            tension: .32,
-            pointRadius: 2.5,
-            pointHoverRadius: 5
+            yAxisID: "yActions",
+            backgroundColor: "rgba(255,255,255,.11)",
+            borderColor: "rgba(255,255,255,.28)",
+            borderWidth: 1,
+            borderRadius: 4,
+            barPercentage: .72,
+            categoryPercentage: .74,
+            order: 2
           }
         ]
       },
@@ -245,9 +259,17 @@
             ticks: { color:"#6f7b8d", font:{size:10} },
             border: { color:"rgba(255,255,255,.06)" }
           },
-          y: {
+          yLeads: {
+            position: "left",
             beginAtZero:true,
             grid: { color:"rgba(255,255,255,.055)" },
+            ticks: { color:"#6f7b8d", font:{size:10}, precision:0 },
+            border: { display:false }
+          },
+          yActions: {
+            position: "right",
+            beginAtZero:true,
+            grid: { drawOnChartArea:false },
             ticks: { color:"#6f7b8d", font:{size:10}, precision:0 },
             border: { display:false }
           }
