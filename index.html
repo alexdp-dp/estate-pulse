@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="ro">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#0b0f14" />
+  <title>Estate Pulse — PPC Dashboard</title>
+  <meta name="description" content="Estate Pulse — real estate performance dashboard" />
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" />
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="brand-wrap">
+        <div class="brand-mark">▥</div>
+        <div>
+          <div class="brand">estate pulse</div>
+          <div class="brand-sub">DIGITAL PARTNERS</div>
+        </div>
+      </div>
+
+      <nav class="nav">
+        <a class="nav-item active" href="#overview">
+          <span class="nav-icon">◫</span>
+          <span>Privire de ansamblu</span>
+        </a>
+      </nav>
+
+      <div class="sidebar-section">
+        <div class="sidebar-label">DEZVOLTATORI</div>
+        <div id="sidebarDevelopers" class="developer-list"></div>
+      </div>
+
+      <div class="sidebar-footer">
+        <div class="avatar">AD</div>
+        <div>
+          <div class="user-name">Alex Darie</div>
+          <div class="user-role">Performance marketing</div>
+        </div>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div>
+          <div class="crumb">Workspace / Privire de ansamblu</div>
+          <div class="eyebrow">REAL ESTATE PERFORMANCE</div>
+          <h1>Privire de ansamblu</h1>
+          <p>Rezultatele proiectelor tale, într-un singur loc.</p>
+        </div>
+        <button id="refreshBtn" class="btn-secondary" type="button">↻ Reîncarcă datele</button>
+      </header>
+
+      <section class="status-row">
+        <div id="connectionBadge" class="status-badge status-loading">
+          <span class="status-dot"></span>
+          Supabase · conectare…
+        </div>
+        <div id="lastUpdated" class="muted"></div>
+      </section>
+
+      <section class="filters card">
+        <div class="field">
+          <label for="developerFilter">Dezvoltator</label>
+          <select id="developerFilter"></select>
+        </div>
+        <div class="field">
+          <label for="periodFilter">Perioadă</label>
+          <select id="periodFilter">
+            <option value="all">Toată perioada</option>
+            <option value="12">Ultimele 12 luni</option>
+            <option value="6">Ultimele 6 luni</option>
+            <option value="3">Ultimele 3 luni</option>
+            <option value="ytd">Anul curent</option>
+          </select>
+        </div>
+        <button id="resetFilters" class="btn-link" type="button">Resetează filtrele</button>
+      </section>
+
+      <section class="kpi-grid">
+        <article class="kpi-card">
+          <div class="kpi-head"><span>Leaduri</span><span class="kpi-icon">◉</span></div>
+          <div id="kpiLeads" class="kpi-value">—</div>
+          <div class="kpi-caption">Contacte înregistrate</div>
+        </article>
+
+        <article class="kpi-card">
+          <div class="kpi-head"><span>Vizite / întâlniri</span><span class="kpi-icon">⌂</span></div>
+          <div id="kpiMeetings" class="kpi-value">—</div>
+          <div class="kpi-caption">Vizite sau întâlniri raportate</div>
+        </article>
+
+        <article class="kpi-card">
+          <div class="kpi-head"><span>Tranzacții</span><span class="kpi-icon">◇</span></div>
+          <div id="kpiTransactions" class="kpi-value">—</div>
+          <div class="kpi-caption">Tranzacții înregistrate</div>
+        </article>
+
+        <article class="kpi-card">
+          <div class="kpi-head"><span>Cheltuială</span><span class="kpi-icon">↗</span></div>
+          <div id="kpiSpend" class="kpi-value">—</div>
+          <div id="kpiCpl" class="kpi-caption">Date media neimportate încă</div>
+        </article>
+      </section>
+
+      <section class="content-grid">
+        <article class="card chart-card">
+          <div class="section-title-row">
+            <div>
+              <h2>Evoluția rezultatelor</h2>
+              <p>Leaduri, vizite / întâlniri și tranzacții pe lună.</p>
+            </div>
+            <div id="periodLabel" class="pill"></div>
+          </div>
+          <div class="chart-wrap">
+            <canvas id="resultsChart"></canvas>
+          </div>
+        </article>
+
+        <article class="card funnel-card">
+          <div class="section-title-row">
+            <div>
+              <h2>Parcurs comercial</h2>
+              <p>Volume în perioada selectată</p>
+            </div>
+          </div>
+
+          <div class="funnel-row">
+            <div>
+              <div class="funnel-label">Leaduri</div>
+              <div id="funnelLeads" class="funnel-value">—</div>
+            </div>
+            <div id="funnelLeadPct" class="funnel-pct">100%</div>
+          </div>
+          <div class="funnel-bar"><span id="barLeads"></span></div>
+
+          <div class="funnel-row">
+            <div>
+              <div class="funnel-label">Vizite / întâlniri</div>
+              <div id="funnelMeetings" class="funnel-value">—</div>
+            </div>
+            <div id="funnelMeetingPct" class="funnel-pct">—</div>
+          </div>
+          <div class="funnel-bar"><span id="barMeetings"></span></div>
+
+          <div class="funnel-row">
+            <div>
+              <div class="funnel-label">Tranzacții</div>
+              <div id="funnelTransactions" class="funnel-value">—</div>
+            </div>
+            <div id="funnelTransactionPct" class="funnel-pct">—</div>
+          </div>
+          <div class="funnel-bar"><span id="barTransactions"></span></div>
+
+          <p class="note">Raporturile compară volumele perioadei, nu conversia aceleiași cohorte de leaduri.</p>
+        </article>
+      </section>
+
+      <section class="card developer-performance">
+        <div class="section-title-row">
+          <div>
+            <h2>Performanță pe dezvoltator</h2>
+            <p>Click pe un dezvoltator pentru a-i explora rezultatele.</p>
+          </div>
+        </div>
+
+        <div class="table-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th>Dezvoltator / proiect</th>
+                <th>Leaduri</th>
+                <th>Vizite / întâlniri</th>
+                <th>Tranzacții</th>
+                <th>Cheltuială</th>
+                <th>CPL</th>
+              </tr>
+            </thead>
+            <tbody id="developerTableBody"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="emptyState" class="card empty-state hidden">
+        <h2>Nu există date pentru selecția curentă.</h2>
+        <p>Schimbă perioada sau dezvoltatorul selectat.</p>
+      </section>
+
+      <section id="errorState" class="card error-state hidden">
+        <h2>Nu am putut încărca datele.</h2>
+        <p id="errorMessage"></p>
+      </section>
+    </main>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+  <script src="./config.js"></script>
+  <script src="./app.js"></script>
+</body>
+</html>
