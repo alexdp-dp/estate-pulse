@@ -264,8 +264,7 @@
   async function api(path) {
     const response = await fetch(`${cfg.SUPABASE_URL}/rest/v1/${path}`, {
       headers: {
-        "apikey": cfg.SUPABASE_ANON_KEY,
-        "Authorization": `Bearer ${cfg.SUPABASE_ANON_KEY}`,
+        "apikey": cfg.SUPABASE_PUBLISHABLE_KEY,
         "Accept": "application/json"
       }
     });

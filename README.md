@@ -21,7 +21,7 @@ Open Supabase → SQL Editor and run the whole file:
 `SECURITY_SETUP.sql`
 
 At the moment this project was packaged, RLS was disabled on the four public tables.
-The browser key in `config.js` is a public Supabase anon key (normal for client-side Supabase),
+The browser key in `config.js` is a public Supabase publishable key (normal for client-side Supabase),
 but it is only safe once RLS restricts access.
 
 `SECURITY_SETUP.sql`:
@@ -46,7 +46,7 @@ There is no Node build step. It is a static frontend.
 
 `config.js` already contains:
 - Supabase project URL
-- browser anon key
+- browser publishable key
 
 Do **not** add:
 - service-role key
